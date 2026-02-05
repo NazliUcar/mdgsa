@@ -10,6 +10,12 @@ The mdgsa package from GitHub uses an obsolete `KEGG.db` dependency. Bioconducto
 
 ---
 
+## ⚠️ NOTE (February 2026)
+
+**The fixes described in this guide have already been applied to this repository.** If you are cloning from this updated repository, you can skip directly to **Step 2** (installing R package dependencies) and then **Step 4** (installing the package locally). Steps 3–3.4 are no longer necessary.
+
+---
+
 ## Prerequisites
 
 You need:
