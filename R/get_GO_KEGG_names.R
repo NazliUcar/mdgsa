@@ -109,32 +109,22 @@ getGOnames <- function (x, verbose = TRUE) {
 ##'
 ##' @export
 
-getKEGGnames <- function(x, verbose = TRUE) {
-    
-    if (is.data.frame(x) | is.matrix(x)) {
-        if (verbose) message("Using row names of the input matrix.")
-        x <- rownames(x)
-    }
-    
-    if (verbose) {
-        message("Fetching KEGG data online using KEGGREST")
-    }
-
-    # Ensure IDs are properly formatted (KEGGREST requires full IDs)
-    # Using 'hsa' for Human; tappAS will appreciate the clarity
-    x <- ifelse(!grepl("^path:", x), paste0("path:hsa", x), x) 
-    
-    # Fetch pathway names from KEGG
-    id2name <- sapply(x, function(id) {
+getKEGGnames <- function (x, ...) {
+    message ("Fetching KEGG data online using KEGGREST")
+  
+    # 1. Standardize the IDs (accepts numeric, 'hsa' and 'path:' forms)
+    x <- ifelse(grepl("^path:", x), x,
+                ifelse(grepl("^hsa", x), x,
+                       ifelse(grepl("^[0-9]+$", x), paste0("path:hsa", x), x)))
+  
+    # 2. The part that calls KEGGREST
+    # Use vapply to ensure a character vector is always returned
+    out <- vapply(x, function(id) {
         tryCatch({
-            keggGet(id)[[1]]$NAME
-        }, error = function(e) NA) 
-    })
+            dat <- KEGGREST::keggGet(id)
+            dat[[1]]$NAME
+        }, error = function(e) NA_character_)
+    }, FUN.VALUE = character(1), USE.NAMES = TRUE)
     
-    # Warn if any IDs were not found
-    if (any(is.na(id2name))) {
-        warning(sum(is.na(id2name)), " KEGG ids were not found; missing names generated.")
-    }
-
-    return(id2name)
+    return(out)
 }

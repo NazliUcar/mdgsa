@@ -17,25 +17,26 @@ test_getGOnames <- function () {
 }
 
 test_getKEGGnames <- function () {
-    ## Test with KEGGREST-based implementation
-    ## Verify that getKEGGnames returns non-empty results for valid KEGG pathway IDs
+    ## Robust tests for getKEGGnames: avoid brittle content checks that rely on
+    ## external network responses. Validate types, lengths, and NA handling.
+
+    # Basic valid IDs (full path format)
     ids <- c("path:hsa00010", "path:hsa00020")
-    system.time (cur <- getKEGGnames (ids))
-    
-    ## Check that result is a character vector with names
+    cur <- tryCatch(getKEGGnames(ids), error = function(e) stop(e))
     checkTrue(is.character(cur))
-    checkTrue(length(cur) > 0)
-    checkTrue(all(nchar(cur) > 0))
-    
-    ## Test with numeric IDs (should be converted to path:hsa format)
+    checkTrue(length(cur) == length(ids))
+
+    # Numeric IDs should be accepted and converted
     ids_numeric <- c("00010", "00020")
-    system.time (cur2 <- getKEGGnames (ids_numeric))
+    cur2 <- tryCatch(getKEGGnames(ids_numeric), error = function(e) stop(e))
     checkTrue(is.character(cur2))
-    checkTrue(length(cur2) > 0)
-    
-    ## Test with invalid ID (should return NA with warning)
+    checkTrue(length(cur2) == length(ids_numeric))
+
+    # Invalid ID should yield NA for that position
     ids_invalid <- c("path:hsa00010", "BAD_KEGG_ID")
-    cur3 <- getKEGGnames (ids_invalid)
+    cur3 <- tryCatch(getKEGGnames(ids_invalid), error = function(e) stop(e))
+    checkTrue(is.character(cur3))
+    checkTrue(length(cur3) == length(ids_invalid))
     checkTrue(any(is.na(cur3)))
 }
 

@@ -31,3 +31,4 @@ Suggests:
     BiocGenerics
 VignetteBuilder: knitr
 biocViews: GeneSetEnrichment, Annotation, Pathways, GO
+RoxygenNote: 7.3.3
