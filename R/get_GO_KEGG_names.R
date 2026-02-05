@@ -105,39 +105,36 @@ getGOnames <- function (x, verbose = TRUE) {
 ##' getKEGGnames (c("00010", "00020", "BAD_KEGG"))
 ##' 
 ##' @import DBI
-##' @import KEGG.db
+##' @import KEGGREST
 ##'
 ##' @export
 
-getKEGGnames <- function (x, verbose = TRUE) {
-
-    if (is.data.frame (x) | is.matrix (x)) {
-        if (verbose) message ("Using row names of the input matrix.")
-        x <- rownames (x)
+getKEGGnames <- function(x, verbose = TRUE) {
+    
+    if (is.data.frame(x) | is.matrix(x)) {
+        if (verbose) message("Using row names of the input matrix.")
+        x <- rownames(x)
     }
     
     if (verbose) {
-        message ("Using KEGG.db version: ",
-                 packageDescription ("KEGG.db", fields = "Version"))
+        message("Fetching KEGG data online using KEGGREST")
     }
 
-    ##kegg id to kegg name
-    micon <- KEGG_dbconn ()
-    tabla <- dbReadTable (micon, "pathway2name")
-    ##tabla <- tabla[,c("path_id", "path_name")]
-    ##anything to filter out?
+    # Ensure IDs are properly formatted (KEGGREST requires full IDs)
+    # Using 'hsa' for Human; tappAS will appreciate the clarity
+    x <- ifelse(!grepl("^path:", x), paste0("path:hsa", x), x) 
     
-    id2name <- tabla[,"path_name"]
-    names (id2name) <- tabla[,"path_id"]
+    # Fetch pathway names from KEGG
+    id2name <- sapply(x, function(id) {
+        tryCatch({
+            keggGet(id)[[1]]$NAME
+        }, error = function(e) NA) 
+    })
     
-    ##my kegg ids
-    res <- id2name[x]
-    
-    if (any (is.na (res))) {
-        warning (sum (is.na (res)),
-                 " KEEGids where not found; missing names generated.")
+    # Warn if any IDs were not found
+    if (any(is.na(id2name))) {
+        warning(sum(is.na(id2name)), " KEGG ids were not found; missing names generated.")
     }
 
-    ## OUTPUT
-    res
+    return(id2name)
 }

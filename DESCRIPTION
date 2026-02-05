@@ -17,7 +17,7 @@ Imports:
     AnnotationDbi,
     DBI,
     GO.db,
-    KEGG.db,
+    KEGGREST,
     cluster,
     Matrix
 Suggests:
